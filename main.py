@@ -4,6 +4,7 @@ from sqlalchemy.future import select
 from database import database
 from geoalchemy2.functions import ST_AsGeoJSON
 import json
+from geojson_pydantic import Feature, FeatureCollection
 app = FastAPI()
 
 
@@ -31,21 +32,21 @@ async def nyc_neighborhoods(db: AsyncSession = Depends(get_db)):
     features = []
     for neighborhood in neighborhoods:
         # geometry conversion to GeoJSON
-        geometry = await db.scalar(ST_AsGeoJSON(neighborhood.geom))
-        # creates feature dictionary
-        feature = {
-            "type": "Feature",
-            "geometry": json.loads(geometry),
-            "properties": {
-                "name": neighborhood.name
-                # Add other properties as needed
-            }
-        }
-        features.append(feature)
-# creates feature collection from the appended features above in GeoJSON format
-    geojson = {
-        "type": "FeatureCollection",
-        "features": features
-    }
+        geometry_json= await db.scalar(ST_AsGeoJSON(neighborhood.geom))
+        # creates feature dict
+        geometry = json.loads(geometry_json)  # Convert to Python dict
 
-    return geojson
+        # geoJSON pydantic type checking validation
+
+        feature = Feature(
+                type='Feature',
+                geometry=geometry,  # Directly passing the dictionary
+                properties={'name': neighborhood.name}  # Additional properties
+            )
+        # adds features to feature collection
+        features.append(feature)
+
+    return FeatureCollection(type='FeatureCollection', features=features)
+
+
+
