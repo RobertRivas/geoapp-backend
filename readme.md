@@ -51,11 +51,6 @@ refer to for local setup - [🏙️ PostGIS Workshop](https://postgis.net/worksh
     psql -d nyc -c "CREATE EXTENSION postgis;"
     ```
 
-5. Configure the database URL in `alembic.ini`:
-use .env.local file and environment variables.
-    ```ini
-    sqlalchemy.url = postgresql+asyncpg:\\your path to database
-    ```
 
 ## Usage
 
