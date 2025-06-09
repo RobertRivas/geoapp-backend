@@ -26,7 +26,8 @@ class Database:
             # reflects database schema
             await conn.run_sync(lambda conn: self.Base.prepare(autoload_with=conn))
             # makes table accessible through sqlalchemy repeat process for more tables as needed.
-        self.NYCNeighborhood = self.Base.classes.nyc_neighborhoods
+            self.NYCNeighborhood = self.Base.classes.nyc_neighborhoods
+            self.NYCHomicides = self.Base.classes.nyc_homicides
 
     async def get_async_session(self) -> AsyncGenerator[AsyncSession, None]:
         async with self.async_session_maker() as session:
@@ -35,5 +36,3 @@ class Database:
 
 # Initialize the Database instance
 database = Database(SQLALCHEMY_DATABASE_URL)
-
-

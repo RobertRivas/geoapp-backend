@@ -1,0 +1,65 @@
+services:
+  web:
+    image: robertrivas032/geoapp-backend-web:latest
+    container_name: geoapp-backend-web
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
+    expose:
+      - "8000"
+    env_file:
+      - .env.ec2prod
+    environment:
+      - VIRTUAL_HOST=${VIRTUAL_HOST}
+      - VIRTUAL_PORT=${VIRTUAL_PORT}
+      - LETSENCRYPT_HOST=${LETSENCRYPT_HOST}
+      - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
+      - FRONTEND_ORIGIN=${FRONTEND_ORIGIN}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+
+  nginx-proxy:
+    image: jwilder/nginx-proxy
+    container_name: nginx-proxy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - html:/usr/share/nginx/html
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - certs:/etc/nginx/certs
+      - vhost:/etc/nginx/vhost.d
+    labels:
+      - com.github.nginx-proxy.nginx
+    env_file:
+      - .env.ec2prod
+    environment:
+      - ENABLE_IPV6=true
+      - VIRTUAL_HOST=${VIRTUAL_HOST}
+      - LETSENCRYPT_HOST=${LETSENCRYPT_HOST}
+      - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
+
+  acme-companion:
+    image: nginxproxy/acme-companion
+    container_name: acme-companion
+    depends_on:
+      - nginx-proxy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - certs:/etc/nginx/certs
+      - vhost:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
+      - acme:/etc/acme.sh
+    env_file:
+      - .env.ec2prod
+    environment:
+      - NGINX_PROXY_CONTAINER=nginx-proxy
+      - ACME_CA_URI=${ACME_CA_URI}
+
+volumes:
+  certs:
+  vhost:
+  html:
+  acme:
