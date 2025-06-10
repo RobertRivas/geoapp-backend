@@ -1,5 +1,3 @@
-Sure, here is an updated version of the README with fun graphics and emojis in a geospatial theme:
-
 # 🌍 Geoapp-backend
 
 ## Overview
